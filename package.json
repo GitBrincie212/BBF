@@ -1,0 +1,27 @@
+{
+  "name": "bbf",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "./src/index.js",
+  "bin": {
+    "BBF": "./src/index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.36.0",
+    "eslint-config-google": "^0.14.0"
+  },
+  "dependencies": {
+    "@types/ajv": "^1.0.0",
+    "@types/figlet": "^1.5.5",
+    "ajv": "^8.12.0",
+    "figlet": "^1.6.0",
+    "readline-sync": "^1.4.10"
+  }
+}

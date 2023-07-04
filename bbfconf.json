@@ -1,0 +1,25 @@
+{   
+    "Runtime": {
+        "Circular Memory Tape": false,
+        "Dynamic Memory Expansion": true
+    },
+    "Operation Options": {
+        "Lazy Printing": true,
+        "Input Fillness": true,
+        "Modes": {
+            "Line Repetition": false
+        }
+    },
+    "Visual Options": {
+        "Colored Output": true,
+        "Enable Warnings": true,
+        "Logging": {
+            "Error Label": "ERROR",
+            "Warning Label": "WARNING",
+            "Debug Label": "DEBUG"
+        }
+    },
+    "Imports": [
+        "./examples/Main.mbbf"
+    ]
+}
