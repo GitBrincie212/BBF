@@ -1,7 +1,7 @@
 {
   "name": "bbf",
   "version": "1.2.0",
-  "description": "Ths is a expansion of BBF, but instead of C its written in Javascript and offers more advantages",
+  "description": "This is a expansion of BBF, but instead of C its written in Javascript and offers more advantages",
   "type": "module",
   "main": "./src/index.js",
   "bin": {
