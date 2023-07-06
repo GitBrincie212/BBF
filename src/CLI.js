@@ -202,6 +202,16 @@ export function consoleBBF() {
  * @return {string}
 */
 export function helpBBF() {
-    const result = 'e';
+    const result = `BBF <command> <arguments>
+    All commands & arguments:
+
+    BBF --run path/to/foo.bbf <config> <saving config's state>
+    BBF --debug path/to/foo.bbf <config> <saving config's state>
+    BBF --console
+    BBF --use path/to/bbfconf.json
+    BBF --help
+    
+    Beyond Brainfuck(BBF) v1.2.0-release
+    `;
     return result;
 }
