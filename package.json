@@ -1,7 +1,7 @@
 {
   "name": "bbf",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.2.0",
+  "description": "Ths is a expansion of BBF, but instead of C its written in Javascript and offers more advantages",
   "type": "module",
   "main": "./src/index.js",
   "bin": {
@@ -11,7 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
+  "author": "McBrincie212",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^8.36.0",

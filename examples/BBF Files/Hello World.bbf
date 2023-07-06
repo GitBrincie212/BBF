@@ -1,0 +1,12 @@
+# // Create A Variable Cell With Default Value 0
+§H. // Set Memory Cell to "H" And Print It
+§e. // Set Memory Cell to "e" And Print It
+§l.. // Set Memory Cell to "l" And Print It Twice
+§o. // Set Memory Cell to "o" And Print It
+§\!. // Set Memory Cell to "!" (Escaped via "\" because its a operator) And Print It
+§ .§ // Set Memory Cell to " " (Space Character) And Print It
+§W. // Set Memory Cell to "W" And Print It
+§o. // Set Memory Cell to "o" And Print It
+§r.. // Set Memory Cell to "r" And Print It Twice
+§l. // Set Memory Cell to "l" And Print It
+§d. // Set Memory Cell to "d" And Print It
