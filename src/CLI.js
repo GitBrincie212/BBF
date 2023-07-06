@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-
 /* eslint-disable indent */
 
 import {run, debug} from './Interpeter/Runner.js';

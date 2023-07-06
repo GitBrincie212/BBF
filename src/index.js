@@ -1,10 +1,11 @@
+#!/usr/bin/env node
 /* eslint-disable indent */
-import * as CLI from './CLI.js';
+import {executeFile, useConfig, consoleBBF, helpBBF} from './js';
 
 switch (process.argv[2]) {
     case '-r':
     case '--run':
-        const dataRun = CLI.executeFile(
+        const dataRun = executeFile(
                                     process.argv[3], false,
                                     process.argv[4],
                                     process.argv[5] === '--synch',
@@ -13,7 +14,7 @@ switch (process.argv[2]) {
         break;
     case '-d':
     case '--debug':
-        const dataDebug = CLI.executeFile(
+        const dataDebug = executeFile(
                                     process.argv[3], true,
                                     process.argv[4],
                                     process.argv[5] === '--synch',
@@ -22,16 +23,15 @@ switch (process.argv[2]) {
         break;
     case '-u':
     case '--use':
-        const dataUse = CLI.useConfig(process.argv[3]);
+        const dataUse = useConfig(process.argv[3]);
         console.log(dataUse);
         break;
     case '-c':
     case '--console':
-        CLI.consoleBBF();
+        consoleBBF();
         break;
     case '-h':
     case '--help':
-    default:
         console.log('eeeeeee');
-        console.log(CLI.helpBBF());
+        console.log(helpBBF());
 }
