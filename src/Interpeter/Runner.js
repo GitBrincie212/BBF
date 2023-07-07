@@ -2,7 +2,7 @@
 
 import {OperatorMap} from './Operators.js';
 import {existsSync as fsExistSync, readFileSync as fsRead} from 'fs';
-import {Error, Warning, logObject} from './Logpoints.js';
+import {Error, Warning, Debug, logObject} from './Logpoints.js';
 import {renderCLI} from './TUI.js';
 import readlineSync from 'readline-sync';
 
@@ -32,14 +32,17 @@ function customOperator(str, charPOS, CustomOperatorsMap, VariableMAP) {
  * @return {Object}
 */
 function createVarMAP(str, conf) {
-    let arr = [0, 0, 0, 0, 0];
-    if (conf['Runtime']['Dynamic Memory Expansion'] === false) {
-        arr = Array(30_000).fill(0);
+    const runtime = conf['Runtime'];
+    const memcell = Math.round(runtime['Memory Cell Value'] || 0);
+    let arr = [memcell, memcell, memcell];
+    if (runtime['Dynamic Memory Expansion'] === false) {
+        arr = Array(30_000).fill(memcell);
     }
     return {
         'char_pos': 0,
         'memory_position': 0,
         'memory_tape': arr,
+        'curr_type': 'memory',
         'code': str,
         'loops': [],
         'variable_tape': [],
@@ -48,6 +51,8 @@ function createVarMAP(str, conf) {
         'function_pos': 0,
         'print_attempts': 0,
         'shell': '',
+        'args_tape': [],
+        'args_position': 0,
         'backslashed': false,
         'preposition': ['memory_position', 0],
     };
@@ -104,10 +109,8 @@ function beginExecution(ArgsObject, isDebugging) {
     let operator;
     let ExitCode;
     let char;
-    let charPOS = VariableMAP['char_pos'];
-    while (charPOS < str.length) {
-        str = VariableMAP['code'];
-        char = str[charPOS];
+    while (VariableMAP['char_pos'] < VariableMAP['code'].length) {
+        char = str[VariableMAP['char_pos']];
         operator = OperatorMap[char];
         if (isDebugging) {
             renderCLI(VariableMAP, char);
@@ -116,13 +119,15 @@ function beginExecution(ArgsObject, isDebugging) {
         if (VariableMAP['backslashed']) {
             FinalExitCode = Math.max(0, FinalExitCode);
             VariableMAP['char_pos']++;
-            charPOS++;
             VariableMAP['backslashed'] = false;
             continue;
         } else if (operator instanceof Function) {
             results = operator(VariableMAP, conf, logSTR, char);
         } else if (CustomOperatorsMap[char] !== undefined) {
-            customOperator(str, charPOS, CustomOperatorsMap, VariableMAP);
+            customOperator(
+                            str, VariableMAP['char_pos'],
+                            CustomOperatorsMap, VariableMAP,
+                        );
         }
         ExitCode = results[0];
         FinalExitCode = Math.max(ExitCode, FinalExitCode);
@@ -130,7 +135,6 @@ function beginExecution(ArgsObject, isDebugging) {
         if (ExitCode === 2) break;
         VariableMAP = results[1];
         VariableMAP['char_pos']++;
-        charPOS = VariableMAP['char_pos'];
     }
     const colorOutput = conf['Visual Options']['Colored Output'];
     return [performanceStart, FinalExitCode, logSTR, colorOutput];
@@ -161,14 +165,14 @@ function simplify(str, CustomOperatorsMap, conf) {
     }
     for (const [operator, code] of Object.entries(CustomOperatorsMap)) {
         if (operator === undefined || code === undefined) continue;
-        str = str.replace(operator, code);
+        str = str.replace(operator, code + '()');
     }
     const CustomOperators = Object.keys(CustomOperatorsMap).join('\\');
     str = str.replace(new RegExp('//.*', 'g'), '');
     const allOperators = `${operators}${CustomOperators}`;
     str = str.replace(/\\\\/g, '\\');
     // eslint-disable-next-line max-len
-    const pattern = new RegExp(`§(?![^${allOperators}]|\\\\.|\\.(?<![§]))`, 'g');
+    const pattern = new RegExp(`§(?![^${allOperators}]|¶(?!\d+)|\\\\.|\\.(?<![§]))`, 'g');
     str = str.replace(pattern, '');
     str = str.trim();
     str = str.replace(/[≺≻⋞⋟=≠](?!\[)/, '');
@@ -265,6 +269,7 @@ function optimiseScript(str, conf, isDebug=false) {
         ['Conditional Loop', ['['], [']']],
         ['Condition', ['¿', '⸮', '⁈'], ['?', '⁇']],
         ['Function', ['{'], ['}']],
+        ['Argument', ['('], [')']],
     ];
     for (const element of oacMap) {
         const openings = element[1].join('\\');
@@ -365,13 +370,9 @@ export function debug(str, conf) {
         const time = ((diff) / 1_000);
         Sectiontimes.push(time);
         const isError = (results[0] === 2) ? '& Errored Out': '';
-        let color = '\x1b[32m';
-        if (Exitcode === 1) color = '\x1b[33m';
-        else if (Exitcode === 2) color = '\x1b[31m';
-        const checkColor = (colorOutput) ? `\x1b[1m${color}` : '';
-        const checkColor2 = (colorOutput) ? `\x1b[0m${color}` : '';
+        const data = logObject(conf);
         // eslint-disable-next-line max-len
-        logSTR += `${checkColor}[DEBUG]${checkColor2} ${currSection} Took ${time.toFixed(6)} Seconds ${isError}\x1b[0m\n`;
+        logSTR += new Debug(`${currSection} Took ${time.toFixed(6)} Seconds ${isError}`, Exitcode, data).str;
         if (results[1].length !== 0) {
             const log = `• ${results[1]}`.split('\n').join('\n• ').slice(0, -2);
             logSTR += log;
@@ -381,13 +382,9 @@ export function debug(str, conf) {
     }
     const time = Sectiontimes.reduce((acc, val) => acc + val, 0);
     const FinalExitCode = Math.max(...exitCodes);
-    let sectionColor = '\x1b[32m';
-    if (FinalExitCode === 1) sectionColor = '\x1b[33m';
-    else if (FinalExitCode === 2) sectionColor = '\x1b[31m';
-    const checkColor = (colorOutput) ? `\x1b[1m${sectionColor}` : '';
+    const data = logObject(conf);
     // eslint-disable-next-line max-len
-    const sectionLog = `\n${checkColor}[DEBUG] Entire Section Took ${time.toFixed(6)} Seconds With Exit Code ${FinalExitCode}`;
-    logSTR += sectionLog;
+    logSTR += '\n' + new Debug(`Entire Section Took ${time.toFixed(6)} Seconds With Exit Code ${FinalExitCode}`, FinalExitCode, data).str;
     clearConsole();
     console.log(logSTR);
     if (FinalExitCode === 2) {
@@ -417,7 +414,7 @@ export function debug(str, conf) {
 */
 export function run(str, conf) {
     const performanceStart = performance.now();
-    str = str.replace(/∂/, '');
+    str = str.replace(/[∂¶]/, '');
     const ImportResults = imports(str, conf);
     if (ImportResults[3] === 2) {
         return ImportResults[2];

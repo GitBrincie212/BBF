@@ -6,8 +6,9 @@ import {execSync} from 'child_process';
 let canRepeat = false;
 
 const PLUS = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
-    if (VariableMAP['memory_tape'][MemoryPOS] === undefined) {
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    if (VariableMAP[`${currType}_tape`][CurrCursorPos] === undefined) {
         const posIndex = VariableMAP['char_pos'];
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
@@ -15,71 +16,72 @@ const PLUS = (VariableMAP, conf, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][MemoryPOS]++;
+    VariableMAP[`${currType}_tape`][CurrCursorPos]++;
     return [0, VariableMAP, logSTR];
 };
 
 const MINUS = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
-    if (VariableMAP['memory_tape'][MemoryPOS] === undefined) {
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    if (VariableMAP[`${currType}_tape`][CurrCursorPos] === undefined) {
         const pos = VariableMAP['char_pos'] + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][MemoryPOS]--;
+    VariableMAP[`${currType}_tape`][CurrCursorPos]--;
     return [0, VariableMAP, logSTR];
 };
 
 const LEFT_ARROW = (VariableMAP, conf, logSTR) => {
     VariableMAP['memory_position']--;
-    const MemoryPos = VariableMAP['memory_position'];
-    const MemoryTape = VariableMAP['memory_tape'];
-    VariableMAP['preposition'] = ['memory_position', MemoryPos];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    const CurrTape = VariableMAP['memory_position'];
+    VariableMAP['preposition'] = ['memory_position', CurrCursorPos];
     const circularTape = conf['Runtime']['Circular Memory Tape'];
     const dynamicTape = conf['Runtime']['Dynamic Memory Expansion'];
     if (!dynamicTape && !circularTape) return [0, VariableMAP, logSTR];
     else if (dynamicTape) {
-        if (MemoryPos >= MemoryTape.length) {
+        if (CurrCursorPos >= CurrTape.length) {
             VariableMAP['memory_tape'].push(0);
             return [0, VariableMAP, logSTR];
         }
-        if (MemoryPos < 0) {
+        if (CurrCursorPos < 0) {
             VariableMAP['memory_tape'].unshift(0);
             return [0, VariableMAP, logSTR];
         }
     }
-    if (MemoryPos < 0) {
-        VariableMAP['memory_position'] = MemoryTape.length - 1;
+    if (CurrCursorPos < 0) {
+        VariableMAP['memory_position'] = CurrTape.length - 1;
         return [0, VariableMAP, logSTR];
     }
-    if (MemoryPos > MemoryTape.length) VariableMAP['memory_position'] = 0;
+    if (CurrCursorPos > CurrTape.length) VariableMAP['memory_position'] = 0;
     return [0, VariableMAP, logSTR];
 };
 
 const RIGHT_ARROW = (VariableMAP, conf, logSTR) => {
     VariableMAP['memory_position']++;
-    const MemoryPos = VariableMAP['memory_position'];
-    const MemoryTape = VariableMAP['memory_tape'];
-    VariableMAP['preposition'] = ['memory_position', MemoryPos];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    const CurrTape = VariableMAP['memory_tape'];
+    VariableMAP['preposition'] = ['memory_position', CurrCursorPos];
     const circularTape = conf['Runtime']['Circular Memory Tape'];
     const dynamicTape = conf['Runtime']['Dynamic Memory Expansion'];
     if (!dynamicTape && !circularTape) return [0, VariableMAP, logSTR];
     if (dynamicTape) {
-        if (MemoryPos >= MemoryTape.length) {
+        if (CurrCursorPos >= CurrTape.length) {
             VariableMAP['memory_tape'].push(0);
             return [0, VariableMAP, logSTR];
-        } else if (MemoryPos < 0) {
+        } else if (CurrCursorPos < 0) {
             VariableMAP['memory_tape'].unshift(0);
             return [0, VariableMAP, logSTR];
         }
         return [0, VariableMAP, logSTR];
     }
-    if (MemoryPos < 0) {
-        VariableMAP['memory_position'] = MemoryTape.length - 1;
+    if (CurrCursorPos < 0) {
+        VariableMAP['memory_position'] = CurrTape.length - 1;
         return [0, VariableMAP, logSTR];
-    } else if (MemoryPos > MemoryTape.length) {
+    } else if (CurrCursorPos > CurrTape.length) {
         VariableMAP['memory_position'] = 0;
         return [0, VariableMAP, logSTR];
     };
@@ -87,11 +89,12 @@ const RIGHT_ARROW = (VariableMAP, conf, logSTR) => {
 };
 
 const PRINT = (VariableMAP, conf, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
-    const MemoryCell = VariableMAP['memory_tape'][memoryPos];
-    const CharTranslation = String.fromCharCode(MemoryCell);
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
+    const CharTranslation = String.fromCharCode(currCell);
     const lazyPrinting = conf['Operation Options']['Lazy Printing'];
-    VariableMAP['preposition'] = ['memory_position', memoryPos];
+    VariableMAP['preposition'] = [`${currType}_position`, CurrCursorPos];
     if (lazyPrinting) {
         if (VariableMAP['print_attempts'] >= 500) {
             process.stdout.write(logSTR);
@@ -108,10 +111,11 @@ const PRINT = (VariableMAP, conf, logSTR) => {
 };
 
 const ASCII_PRINT = (VariableMAP, conf, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
-    const MemoryCell = VariableMAP['memory_tape'][memoryPos];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const lazyPrinting = conf['Operation Options']['Lazy Printing'];
-    VariableMAP['preposition'] = ['memory_position', memoryPos];
+    VariableMAP['preposition'] = [`${currType}_position`, CurrCursorPos];
     if (lazyPrinting) {
         if (VariableMAP['print_attempts'] >= 500) {
             process.stdout.write(logSTR);
@@ -119,7 +123,7 @@ const ASCII_PRINT = (VariableMAP, conf, logSTR) => {
             logSTR = '';
             return [0, VariableMAP, logSTR];
         }
-        logSTR += MemoryCell;
+        logSTR += currCell;
         VariableMAP['print_attempts']++;
         return [0, VariableMAP, logSTR];
     }
@@ -140,8 +144,8 @@ const INPUT = (VariableMAP, conf, logSTR) => {
     };
     const fillIn = (i) => {
         const AsciiTranslation = input[i].charCodeAt(0);
-        const tempMemoryPos = VariableMAP['memory_position'] + i;
-        VariableMAP['memory_tape'][tempMemoryPos] = AsciiTranslation;
+        const tempCurrCursorPos = VariableMAP['memory_position'] + i;
+        VariableMAP['memory_tape'][tempCurrCursorPos] = AsciiTranslation;
     };
     if (canFill) {
         for (let i = 0; i < input.length; i++) fillIn(i);
@@ -150,21 +154,22 @@ const INPUT = (VariableMAP, conf, logSTR) => {
         return [0, VariableMAP, logSTR];
     };
     fillIn(0);
-    const memoryPos = VariableMAP['memory_position'];
-    VariableMAP['preposition'] = ['memory_position', memoryPos];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    VariableMAP['preposition'] = ['memory_position', CurrCursorPos];
     return [0, VariableMAP, logSTR];
 };
 
 const ENTER_LOOP = (VariableMAP, conf, logSTR) => {
     const str = VariableMAP['code'];
+    const currType = VariableMAP['curr_type'];
     const posIndex = VariableMAP['char_pos'];
     const prevChar = str[posIndex - 1];
     const EndLoop = str.lastIndexOf(']');
-    const memoryPos = VariableMAP['memory_position'];
-    const memoryTape = VariableMAP['memory_tape'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const CurrTape = VariableMAP[`${currType}_tape`];
     const varTape = VariableMAP['variable_tape'];
     let varCell = varTape[VariableMAP['variable_pos']];
-    const memoryCell = memoryTape[memoryPos];
+    const currCell = CurrTape[CurrCursorPos];
     let ExitCode = 0;
     if (varCell === undefined) {
         const pos = posIndex + 1;
@@ -176,14 +181,14 @@ const ENTER_LOOP = (VariableMAP, conf, logSTR) => {
         ExitCode = 1;
     }
     const condMap = {
-        '≺': memoryCell < varCell,
-        '≻': memoryCell > varCell,
-        '⋞': memoryCell <= varCell,
-        '⋟': memoryCell >= varCell,
-        '≠': memoryCell != varCell,
-        '=': memoryCell == varCell,
+        '≺': currCell < varCell,
+        '≻': currCell > varCell,
+        '⋞': currCell <= varCell,
+        '⋟': currCell >= varCell,
+        '≠': currCell != varCell,
+        '=': currCell == varCell,
     };
-    let cond = memoryTape[memoryPos] === 0;
+    let cond = CurrTape[CurrCursorPos] === 0;
     if (Object.keys(condMap).includes(prevChar)) {
         VariableMAP['loops'].push(prevChar);
         cond = condMap[prevChar];
@@ -198,12 +203,13 @@ const ENTER_LOOP = (VariableMAP, conf, logSTR) => {
 
 const EXIT_LOOP = (VariableMAP, conf, logSTR) => {
     const str = VariableMAP['code'];
+    const currType = VariableMAP['curr_type'];
     const posIndex = VariableMAP['char_pos'];
-    const memoryPos = VariableMAP['memory_position'];
-    const memoryTape = VariableMAP['memory_tape'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const CurrTape = VariableMAP[`${currType}_tape`];
     const varTape = VariableMAP['variable_tape'];
     let varCell = varTape[VariableMAP['variable_pos']];
-    const memoryCell = memoryTape[memoryPos];
+    const currCell = CurrTape[CurrCursorPos];
     let ExitCode = 0;
     if (varCell === undefined) {
         const pos = posIndex + 1;
@@ -216,12 +222,12 @@ const EXIT_LOOP = (VariableMAP, conf, logSTR) => {
     }
     const loops = VariableMAP['loops'];
     const condMap = {
-        '≺': memoryCell < varCell,
-        '≻': memoryCell > varCell,
-        '⋞': memoryCell <= varCell,
-        '⋟': memoryCell >= varCell,
-        '≠': memoryCell != varCell,
-        '=': memoryCell == varCell,
+        '≺': currCell < varCell,
+        '≻': currCell > varCell,
+        '⋞': currCell <= varCell,
+        '⋟': currCell >= varCell,
+        '≠': currCell != varCell,
+        '=': currCell == varCell,
     };
     const cond = condMap[loops[loops.length - 1]];
     if (!cond) {
@@ -233,13 +239,15 @@ const EXIT_LOOP = (VariableMAP, conf, logSTR) => {
 };
 
 const POSITION_TO_START = (VariableMAP, _, logSTR) => {
-    VariableMAP['memory_position'] = 0;
+    const currType = VariableMAP['curr_type'];
+    VariableMAP[`${currType}_position`] = 0;
     return [0, VariableMAP, logSTR];
 };
 
 const POSITION_TO_END = (VariableMAP, _, logSTR) => {
-    const lastIndex = VariableMAP['memory_tape'].length - 1;
-    VariableMAP['memory_position'] = lastIndex;
+    const currType = VariableMAP['curr_type'];
+    const lastIndex = VariableMAP[`${currType}_tape`].length - 1;
+    VariableMAP[`${currType}_position`] = lastIndex;
     return [0, VariableMAP, logSTR];
 };
 
@@ -335,12 +343,13 @@ const CONTINUE_LOOP = (VariableMAP, conf, logSTR) => {
 
 const IF_OPEN = (VariableMAP, conf, logSTR, char) => {
     const startUps = ['¿', '⸮', '⁈', '⸘'];
+    const currType = VariableMAP['curr_type'];
     const endUps = ['?', '⁇', '‽'];
     const str = VariableMAP['code'];
     const posIndex = VariableMAP['char_pos'];
-    const memoryTape = VariableMAP['memory_tape'];
+    const CurrTape = VariableMAP[`${currType}_tape`];
     const varTape = VariableMAP['variable_tape'];
-    const memoryCell = memoryTape[VariableMAP['memory_position']];
+    const currCell = CurrTape[VariableMAP[`${currType}_position`]];
     const varCell = varTape[VariableMAP['variable_pos']];
     if (varCell === undefined) {
         const pos = posIndex + 1;
@@ -349,7 +358,7 @@ const IF_OPEN = (VariableMAP, conf, logSTR, char) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (memoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
@@ -372,12 +381,12 @@ const IF_OPEN = (VariableMAP, conf, logSTR, char) => {
         return [0, VariableMAP, logSTR];
     };
     switch (sumVals) {
-        case 0: return compareFunc(memoryCell === varCell);
-        case 1: return compareFunc(memoryCell < varCell);
-        case 2: return compareFunc(memoryCell > varCell);
-        case 3: return compareFunc(memoryCell !== varCell);
-        case 4: return compareFunc(memoryCell <= varCell);
-        case 5: return compareFunc(memoryCell >= varCell);
+        case 0: return compareFunc(currCell === varCell);
+        case 1: return compareFunc(currCell < varCell);
+        case 2: return compareFunc(currCell > varCell);
+        case 3: return compareFunc(currCell !== varCell);
+        case 4: return compareFunc(currCell <= varCell);
+        case 5: return compareFunc(currCell >= varCell);
     };
 };
 
@@ -426,10 +435,10 @@ const TELEPORT_TO_PORTAL = (VariableMAP, conf, logSTR) => {
 };
 
 const SWAP_CELLS = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const CurrCursorPos = VariableMAP['memory_position'];
     const VarPOS = VariableMAP['variable_pos'];
     const posIndex = VariableMAP['char_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP['memory_tape'][CurrCursorPos];
     const VarCell = VariableMAP['variable_tape'][VarPOS];
     if (VarCell === undefined) {
         const pos = posIndex + 1;
@@ -438,7 +447,7 @@ const SWAP_CELLS = (VariableMAP, conf, logSTR) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
@@ -446,7 +455,7 @@ const SWAP_CELLS = (VariableMAP, conf, logSTR) => {
         return [2, VariableMAP, logSTR];
     }
     // eslint-disable-next-line max-len
-    [VariableMAP['variable_tape'][VarPOS], VariableMAP['memory_tape'][MemoryPOS]] = [MemoryCell, VarCell];
+    [VariableMAP['variable_tape'][VarPOS], VariableMAP['memory_tape'][CurrCursorPos]] = [currCell, VarCell];
     return [0, VariableMAP, logSTR];
 };
 
@@ -455,9 +464,10 @@ const VOID = (VariableMAP, _, logSTR) => {
 };
 
 const MODULO = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const VarPOS = VariableMAP['variable_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const VarCell = VariableMAP['variable_tape'][VarPOS];
     const posIndex = VariableMAP['char_pos'];
     if (VarCell === undefined) {
@@ -474,42 +484,44 @@ const MODULO = (VariableMAP, conf, logSTR) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][MemoryPOS] = MemoryCell % VarCell;
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = currCell % VarCell;
     return [0, VariableMAP, logSTR];
 };
 
 const SQRT = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const VarPOS = VariableMAP['variable_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     let VarCell = VariableMAP['variable_tape'][VarPOS];
     const posIndex = VariableMAP['char_pos'];
     if (VarCell === undefined || VarCell < 2) {
         VarCell = 2;
     }
-    if (VariableMAP['memory_tape'][MemoryPOS] === undefined) {
+    if (VariableMAP[`${currType}_tape`][CurrCursorPos] === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    const result = Math.pow(MemoryCell, 1/VarCell);
-    VariableMAP['memory_tape'][MemoryPOS] = Math.round(result);
+    const result = Math.pow(currCell, 1/VarCell);
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.round(result);
     return [0, VariableMAP, logSTR];
 };
 
 const POWER = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const VarPOS = VariableMAP['variable_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const VarCell = VariableMAP['variable_tape'][VarPOS];
     const posIndex = VariableMAP['char_pos'];
     if (VarCell === undefined) {
@@ -519,22 +531,23 @@ const POWER = (VariableMAP, conf, logSTR) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    const result = Math.pow(MemoryCell, VarCell);
-    VariableMAP['memory_tape'][MemoryPOS] = Math.round(result);
+    const result = Math.pow(currCell, VarCell);
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.round(result);
     return [0, VariableMAP, logSTR];
 };
 
 const DIVISION = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const VarPOS = VariableMAP['variable_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const VarCell = VariableMAP['variable_tape'][VarPOS];
     const posIndex = VariableMAP['char_pos'];
     if (VarCell === undefined) {
@@ -544,7 +557,7 @@ const DIVISION = (VariableMAP, conf, logSTR) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
@@ -557,15 +570,16 @@ const DIVISION = (VariableMAP, conf, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    const result = MemoryCell / VarCell;
-    VariableMAP['memory_tape'][MemoryPOS] = Math.round(result);
+    const result = currCell / VarCell;
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.round(result);
     return [0, VariableMAP, logSTR];
 };
 
 const MULTIPLICATION = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const VarPOS = VariableMAP['variable_pos'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const VarCell = VariableMAP['variable_tape'][VarPOS];
     const posIndex = VariableMAP['char_pos'];
     if (VarCell === undefined) {
@@ -575,29 +589,30 @@ const MULTIPLICATION = (VariableMAP, conf, logSTR) => {
         const error = new Error(errorout, data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell === undefined) {
+    } else if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    const result = MemoryCell / VarCell;
-    VariableMAP['memory_tape'][MemoryPOS] = Math.round(result);
+    const result = currCell / VarCell;
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.round(result);
     return [0, VariableMAP, logSTR];
 };
 
 const NATURAL_LOGARITHM = (VariableMAP, conf, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const posIndex = VariableMAP['char_pos'];
-    if (MemoryCell === undefined) {
+    if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
-    } else if (MemoryCell <= 0) {
+    } else if (currCell <= 0) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const errorout = 'Memory Cell Cannot Be Below Or Equal 0';
@@ -605,23 +620,24 @@ const NATURAL_LOGARITHM = (VariableMAP, conf, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    const result = Math.log(MemoryCell);
-    VariableMAP['memory_tape'][MemoryPOS] = Math.round(result);
+    const result = Math.log(currCell);
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.round(result);
     return [0, VariableMAP, logSTR];
 };
 
 const ABSOULETE = (VariableMAP, _, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPOS];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
     const posIndex = VariableMAP['char_pos'];
-    if (MemoryCell === undefined) {
+    if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const error = new Error('No Memory Cell is Selected', data).str;
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][MemoryPOS] = Math.abs(result);
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = Math.abs(result);
     return [0, VariableMAP, logSTR];
 };
 
@@ -698,9 +714,10 @@ const LEFT_FUNC_ARROW = (VariableMAP, _, logSTR) => {
 };
 
 const RANDOM_NUMBER = (VariableMAP, _, logSTR) => {
-    const MemoryPOS = VariableMAP['memory_position'];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
     const random = Math.floor(Math.random() * 100_000_000);
-    VariableMAP['memory_tape'][MemoryPOS] = random;
+    VariableMAP[`${currType}_tape`][CurrCursorPos] = random;
     return [0, VariableMAP, logSTR];
 };
 
@@ -740,10 +757,11 @@ const REPEATENCE = (VariableMAP, conf, logSTR, char) => {
 };
 
 const SHELL_RECORD = (VariableMAP, _, logSTR) => {
-    const MemoryPos = VariableMAP['memory_position'];
-    const MemoryCell = VariableMAP['memory_tape'][MemoryPos];
-    const CharTranslation = String.fromCharCode(MemoryCell);
-    VariableMAP['preposition'] = ['memory_position', MemoryPos];
+    const currType = VariableMAP['curr_type'];
+    const CurrCursorPos = VariableMAP[`${currType}_position`];
+    const currCell = VariableMAP[`${currType}_tape`][CurrCursorPos];
+    const CharTranslation = String.fromCharCode(currCell);
+    VariableMAP['preposition'] = [`${currType}_position`, CurrCursorPos];
     VariableMAP['shell'] += CharTranslation;
     return [0, VariableMAP, logSTR];
 };
@@ -779,33 +797,17 @@ const PREPOSITION = (VariableMAP, _, logSTR) => {
     return [0, VariableMAP, logSTR];
 };
 
-const SET_MEMORY_CELL = (VariableMAP, _, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
-    const posIndex = VariableMAP['char_pos'];
-    const str = VariableMAP['code'];
-    const strLastIndex = str.length - 1;
-    let nextChar = str[Math.min(posIndex + 1, strLastIndex)];
-    if (nextChar === '\\') {
-        nextChar = str[Math.min(posIndex + 2, strLastIndex)];
-        VariableMAP['backslashed'] = true;
-    }
-    const charTranslate = nextChar.charCodeAt(0);
-    VariableMAP['memory_tape'][memoryPos] = charTranslate;
-    VariableMAP['char_pos']++;
-    return [0, VariableMAP, logSTR];
-};
-
 const BACKSLASH = (VariableMAP, _, logSTR) => {
     VariableMAP['backslashed'] = true;
     return [0, VariableMAP, logSTR];
 };
 
 const MOVE_LEFT_BY_VARCELL = (VariableMAP, _, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
-    const memoryTape = VariableMAP['memory_tape'];
-    const memoryCell = memoryTape[memoryPos];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    const CurrTape = VariableMAP['memory_tape'];
+    const currCell = CurrTape[CurrCursorPos];
     const varPos = VariableMAP['variable_pos'];
-    if (memoryCell === undefined) {
+    if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const errorout = 'Memory Cell Doesn\'t Exist';
@@ -813,16 +815,16 @@ const MOVE_LEFT_BY_VARCELL = (VariableMAP, _, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['variable_tape'][varPos] += memoryCell;
+    VariableMAP['variable_tape'][varPos] += currCell;
     return [0, VariableMAP, logSTR];
 };
 
 const MOVE_RIGHT_BY_VARCELL = (VariableMAP, _, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
-    const memoryTape = VariableMAP['memory_tape'];
-    const memoryCell = memoryTape[memoryPos];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    const CurrTape = VariableMAP['memory_tape'];
+    const currCell = CurrTape[CurrCursorPos];
     const varPos = VariableMAP['variable_pos'];
-    if (memoryCell === undefined) {
+    if (currCell === undefined) {
         const pos = posIndex + 1;
         const data = logObject(conf, pos);
         const errorout = 'Memory Cell Doesn\'t Exist';
@@ -830,12 +832,12 @@ const MOVE_RIGHT_BY_VARCELL = (VariableMAP, _, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['variable_tape'][varPos] -= memoryCell;
+    VariableMAP['variable_tape'][varPos] -= currCell;
     return [0, VariableMAP, logSTR];
 };
 
 const MOVE_LEFT_BY_MEMCELL = (VariableMAP, _, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
+    const CurrCursorPos = VariableMAP['memory_position'];
     const varTape = VariableMAP['variable_tape'];
     const varPos = VariableMAP['variable_pos'];
     const varCell = varTape[varPos];
@@ -847,12 +849,12 @@ const MOVE_LEFT_BY_MEMCELL = (VariableMAP, _, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][memoryPos] += varCell;
+    VariableMAP['memory_tape'][CurrCursorPos] += varCell;
     return [0, VariableMAP, logSTR];
 };
 
 const MOVE_RIGHT_BY_MEMCELL = (VariableMAP, _, logSTR) => {
-    const memoryPos = VariableMAP['memory_position'];
+    const CurrCursorPos = VariableMAP['memory_position'];
     const varTape = VariableMAP['variable_tape'];
     const varPos = VariableMAP['variable_pos'];
     const varCell = varTape[varPos];
@@ -864,7 +866,74 @@ const MOVE_RIGHT_BY_MEMCELL = (VariableMAP, _, logSTR) => {
         logSTR = logSTR.replace(/^/, error);
         return [2, VariableMAP, logSTR];
     }
-    VariableMAP['memory_tape'][memoryPos] -= varCell;
+    VariableMAP['memory_tape'][CurrCursorPos] -= varCell;
+    return [0, VariableMAP, logSTR];
+};
+
+const ARGUMENT_OPEN = (VariableMAP, conf, logSTR) => {
+    const str = VariableMAP['code'];
+    const posIndex = VariableMAP['char_pos'];
+    const EndArgument = str.indexOf(')');
+    const pos = posIndex + 1;
+    const sliced = str.slice(pos, EndArgument);
+    if (sliced.length === 0) {
+        VariableMAP['args_tape'] = [];
+        VariableMAP['char_pos']++;
+        VariableMAP['curr_type'] = 'memory';
+        VariableMAP['args_position'] = 0;
+        return [0, VariableMAP, logSTR];
+    }
+    const AsciiNums = sliced.match(/\d{3}/gm);
+    const actualContent = sliced.replace(/\s/g, '').split(/,/);
+    if (JSON.stringify(AsciiNums) !== JSON.stringify(actualContent)) {
+        const data = logObject(conf, pos);
+        const errorout = 'Argument Format is incorrect';
+        const error = new Error(errorout, data).str;
+        logSTR = logSTR.replace(/^/, error);
+        return [2, VariableMAP, logSTR];
+    }
+    VariableMAP['args_tape'] = AsciiNums;
+    VariableMAP['char_pos'] = EndArgument;
+    return [0, VariableMAP, logSTR];
+};
+
+const ARGUMENT_SELECT = (VariableMAP, conf, logSTR) => {
+    const str = VariableMAP['code'];
+    const argsBuffer = VariableMAP['args_tape'];
+    const posIndex = VariableMAP['char_pos'];
+    const pos = posIndex + 1;
+    const sliced = str.slice(pos);
+    const digitsIndex = sliced.match(/\d+/)[0];
+    if (digitsIndex >= argsBuffer.length || digitsIndex < 0) {
+        const data = logObject(conf, pos);
+        const errorout = `Argument Index Is Out Of Bounds(${digitsIndex})`;
+        const error = new Error(errorout, data).str;
+        logSTR = logSTR.replace(/^/, error);
+        return [2, VariableMAP, logSTR];
+    }
+    VariableMAP['curr_type'] = 'args';
+    VariableMAP['args_position'] = digitsIndex;
+    VariableMAP['char_pos'] += digitsIndex.length;
+    return [0, VariableMAP, logSTR];
+};
+
+const ARGUMENT_TRANSFER = (VariableMAP, conf, logSTR) => {
+    const str = VariableMAP['code'];
+    const argsBuffer = VariableMAP['args_tape'];
+    const posIndex = VariableMAP['char_pos'];
+    const CurrCursorPos = VariableMAP['memory_position'];
+    const pos = posIndex + 1;
+    const sliced = str.slice(pos);
+    const digitsIndex = sliced.match(/\d+/)[0];
+    if (digitsIndex >= argsBuffer.length || digitsIndex < 0) {
+        const data = logObject(conf, pos);
+        const errorout = `Argument Index Is Out Of Bounds(${digitsIndex})`;
+        const error = new Error(errorout, data).str;
+        logSTR = logSTR.replace(/^/, error);
+        return [2, VariableMAP, logSTR];
+    }
+    VariableMAP['memory_tape'][CurrCursorPos] = argsBuffer[digitsIndex];
+    VariableMAP['char_pos'] += digitsIndex.length;
     return [0, VariableMAP, logSTR];
 };
 
@@ -918,8 +987,11 @@ export const OperatorMap = {
     '⊹': ABSOULETE,
     '&': SHELL_RECORD,
     '$': SHELL_EXECUTE,
-    '§': SET_MEMORY_CELL,
     '\\': BACKSLASH,
+    '¶': ARGUMENT_SELECT,
+    '¬': ARGUMENT_TRANSFER,
+    '(': ARGUMENT_OPEN,
+    ')': VOID,
     '}': VOID,
     'O': VOID,
     '⁇': VOID,

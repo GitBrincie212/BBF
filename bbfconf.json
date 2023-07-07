@@ -1,7 +1,8 @@
 {   
     "Runtime": {
         "Circular Memory Tape": false,
-        "Dynamic Memory Expansion": true
+        "Dynamic Memory Expansion": false,
+        "Memory Cell Value": 0
     },
     "Operation Options": {
         "Lazy Printing": true,
@@ -20,6 +21,6 @@
         }
     },
     "Imports": [
-        "./examples/Main.mbbf"
+        "./examples/MBBF_Files/Main.mbbf"
     ]
 }

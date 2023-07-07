@@ -18,6 +18,10 @@ export const confSchema = {
                     type: "boolean",
                     description: "Start with 1 memory cell and when out of the boundaries add 1 more memory cell with the value of 0",
                 },
+                "Memory Cell Value": {
+                    type: "number",
+                    description: "Start with 1 memory cell and when out of the boundaries add 1 more memory cell with the value of 0",
+                },
             },
         },
         "Operation Options": {

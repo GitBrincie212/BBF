@@ -7,6 +7,6 @@
 § .§ // Set Memory Cell to " " (Space Character) And Print It
 §W. // Set Memory Cell to "W" And Print It
 §o. // Set Memory Cell to "o" And Print It
-§r.. // Set Memory Cell to "r" And Print It Twice
+§r. // Set Memory Cell to "r" And Print It Twice
 §l. // Set Memory Cell to "l" And Print It
 §d. // Set Memory Cell to "d" And Print It

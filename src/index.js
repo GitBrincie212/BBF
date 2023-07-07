@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable indent */
-import {executeFile, useConfig, consoleBBF, helpBBF} from './js';
+import {executeFile, useConfig, consoleBBF, helpBBF} from './CLI.js';
 
 switch (process.argv[2]) {
     case '-r':
@@ -32,6 +32,6 @@ switch (process.argv[2]) {
         break;
     case '-h':
     case '--help':
-        console.log('eeeeeee');
+    default:
         console.log(helpBBF());
 }

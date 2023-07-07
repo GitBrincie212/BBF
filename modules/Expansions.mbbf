@@ -16,4 +16,5 @@
 @© = "+[꛷>]" // Reset Memory Cells Til Coming Across A Memory Cell With 0
 @µ = "¥%" // Randomise Based On Variable Cell As Maximum
 @¬ = "[&>]$" // Record Char To Shell String Til Coming Across A Memory Cell With 0 Then Execute
+@§ = "¶1¬1"
 @⋕ = "~⊹~" // Absoulete the variable cell

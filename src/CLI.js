@@ -21,6 +21,7 @@ function getConfig() {
         'Runtime': {
             'Circular Memory Tape': false,
             'Dynamic Memory Expansion': false,
+            'Memory Cell Value': 0,
         },
         'Operation Options': {
             'Custom Operators': {},
@@ -133,13 +134,17 @@ export function executeFile(ScriptPath, isDebugging, confPath, savedState) {
         const error = new Error(errorout, data).str;
         return error;
     }
-    let conf = getConfig();
+    const defaultConfigs = getConfig();
+    let conf = defaultConfigs;
+    if (fsExistSync('./src/.conf')) {
+        conf = JSON.parse(fsRead('./src/.conf'));
+    }
     if (confPath !== undefined) {
         const results = useConfig(confPath);
         if (results.includes('[ERROR]')) {
             return results;
         }
-        conf = JSON.parse(fsRead('./src/.conf')) || conf;
+        conf = conf || defaultConfigs;
     }
     const debugging = isDebugging;
     ScriptPath = ScriptPath.replace('~', OS_HOMEDIR);
@@ -201,16 +206,21 @@ export function consoleBBF() {
  * @return {string}
 */
 export function helpBBF() {
-    const result = `BBF <command> <arguments>
-    All commands & arguments:
+    const result = `\x1b[6mBBF <command> <arguments>\x1b[0m
 
-    BBF --run path/to/foo.bbf <config> <saving config's state>
-    BBF --debug path/to/foo.bbf <config> <saving config's state>
-    BBF --console
-    BBF --use path/to/bbfconf.json
-    BBF --help
-    
-    Beyond Brainfuck(BBF) v1.2.0-release
-    `;
+All commands & arguments:
+
+- BBF --run path/to/foo.bbf <config> <synchronization>
+- BBF --debug path/to/foo.bbf <config> <synchronization>
+- BBF --console
+- BBF --use path/to/bbfconf.json
+- BBF --help
+
+Argument explanation:
+<config> Path to the bbf config file
+<synchronization> save the config's state(use --sync or -s for that)
+
+
+Beyond Brainfuck(BBF) v1.2.0-release`;
     return result;
 }
