@@ -92,4 +92,4 @@ For Custom Operators, I Talked about it in the previous chapter but in a nutshel
 ```
 
 ## **The End**
-This is the end, this was a passion project and i won't really stick to it for much longer than only 2-3 updates. You can report bugs if you want. View here for the update [changelog](./Changelog.md)
+This is the end, this was a passion project and i won't really stick to it for much longer than only 2-3 updates. You can report bugs if you want. View here for the update [changelog](./changelog.md)
